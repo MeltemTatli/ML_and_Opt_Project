@@ -622,85 +622,83 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
     grad_inner = jax.grad(f_inner, argnums=1)
     grad_outer_outer_var = jax.grad(f_outer, argnums=1)
 
-    m_x = jnp.zeros(outer_var.shape)
-    v_x = jnp.zeros(outer_var.shape)  
 
-def f2sa_one_iter(carry, i):
-    step_sizes, carry['state_lr'] = update_lr(carry['state_lr'])
-    lr_inner, lr_lagrangian, lr_outer, d_lmbda = step_sizes
-
-    # Run the inner procedure
-    carry['inner_var'], carry['lagrangian_inner_var'], \
-    carry['state_inner_sampler'], carry['state_outer_sampler'], \
-    carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'] = \
-        inner_f2sa_adam(
-            carry['inner_var'], carry['lagrangian_inner_var'],
-            carry['outer_var'], carry['lmbda'],
-            carry['state_inner_sampler'], carry['state_outer_sampler'],
-            carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'],
-            inner_sampler=inner_sampler, outer_sampler=outer_sampler,
-            lr_inner=lr_inner, lr_lagrangian=lr_lagrangian,
-            n_steps=n_inner_steps
+    def f2sa_one_iter(carry, i):
+        step_sizes, carry['state_lr'] = update_lr(carry['state_lr'])
+        lr_inner, lr_lagrangian, lr_outer, d_lmbda = step_sizes
+    
+        # Run the inner procedure
+        carry['inner_var'], carry['lagrangian_inner_var'], \
+        carry['state_inner_sampler'], carry['state_outer_sampler'], \
+        carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'] = \
+            inner_f2sa_adam(
+                carry['inner_var'], carry['lagrangian_inner_var'],
+                carry['outer_var'], carry['lmbda'],
+                carry['state_inner_sampler'], carry['state_outer_sampler'],
+                carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'],
+                inner_sampler=inner_sampler, outer_sampler=outer_sampler,
+                lr_inner=lr_inner, lr_lagrangian=lr_lagrangian,
+                n_steps=n_inner_steps
+            )
+    
+        # Compute oracles and get the update direction of the outer variable
+        start_outer, *_, carry['state_outer_sampler'] = outer_sampler(
+            carry['state_outer_sampler']
         )
-
-    # Compute oracles and get the update direction of the outer variable
-    start_outer, *_, carry['state_outer_sampler'] = outer_sampler(
-        carry['state_outer_sampler']
+        start_inner1, *_, carry['state_inner_sampler'] = inner_sampler(
+            carry['state_inner_sampler']
+        )
+        start_inner2, *_, carry['state_inner_sampler'] = inner_sampler(
+            carry['state_inner_sampler']
+        )
+        d_outer_var = grad_outer_outer_var(
+            carry['inner_var'], carry['outer_var'], start_outer
+        )
+        grad_inner_outer = grad_inner(
+            carry['inner_var'], carry['outer_var'], start_inner1
+        )
+        grad_inner_star = grad_inner(
+            carry['lagrangian_inner_var'], carry['outer_var'], start_inner2
+        )
+        d_outer_var += carry['lmbda'] * (grad_inner_star - grad_inner_outer)
+    
+        # calculate adam_grad
+        carry['m_x'], carry['v_x'] = adam_grad_jax(d_outer_var, carry['m_x'], carry['v_x'], beta1, beta2, i)
+        d_outer_var = carry['m_x'] / (jnp.sqrt(carry['v_x']) + epsilon)
+    
+        # Update inner variable with adam.
+        carry['outer_var'] -= lr_outer * d_outer_var
+        carry['lmbda'] += d_lmbda
+    
+        return carry, _
+    
+    init = dict(
+        inner_var=inner_var,
+        lagrangian_inner_var=lagrangian_inner_var,
+        outer_var=outer_var,
+        lmbda=lmbda,
+        state_lr=state_lr,
+        state_inner_sampler=state_inner_sampler,
+        state_outer_sampler=state_outer_sampler,
+        m_x=jnp.zeros_like(outer_var),
+        v_x=jnp.zeros_like(outer_var),
+        m_z=jnp.zeros_like(inner_var),
+        v_z=jnp.zeros_like(inner_var),
+        m_y=jnp.zeros_like(inner_var),
+        v_y=jnp.zeros_like(inner_var)
     )
-    start_inner1, *_, carry['state_inner_sampler'] = inner_sampler(
-        carry['state_inner_sampler']
+    carry, _ = jax.lax.scan(
+        f2sa_one_iter,
+        init=init,
+        xs=None,
+        length=max_iter,
     )
-    start_inner2, *_, carry['state_inner_sampler'] = inner_sampler(
-        carry['state_inner_sampler']
+    
+    return (
+        carry['inner_var'], carry['outer_var'], carry['lagrangian_inner_var'],
+        carry['lmbda'],
+        {k: v for k, v in carry.items()
+         if k not in ['inner_var', 'outer_var', 'lagrangian_inner_var',
+                      'lmbda']}
     )
-    d_outer_var = grad_outer_outer_var(
-        carry['inner_var'], carry['outer_var'], start_outer
-    )
-    grad_inner_outer = grad_inner(
-        carry['inner_var'], carry['outer_var'], start_inner1
-    )
-    grad_inner_star = grad_inner(
-        carry['lagrangian_inner_var'], carry['outer_var'], start_inner2
-    )
-    d_outer_var += carry['lmbda'] * (grad_inner_star - grad_inner_outer)
-
-    # calculate adam_grad
-    carry['m_x'], carry['v_x'] = adam_grad_jax(d_outer_var, carry['m_x'], carry['v_x'], beta1, beta2, i)
-    d_outer_var = carry['m_x'] / (jnp.sqrt(carry['v_x']) + epsilon)
-
-    # Update inner variable with adam.
-    carry['outer_var'] -= lr_outer * d_outer_var
-    carry['lmbda'] += d_lmbda
-
-    return carry, _
-
-init = dict(
-    inner_var=inner_var,
-    lagrangian_inner_var=lagrangian_inner_var,
-    outer_var=outer_var,
-    lmbda=lmbda,
-    state_lr=state_lr,
-    state_inner_sampler=state_inner_sampler,
-    state_outer_sampler=state_outer_sampler,
-    m_x=jnp.zeros_like(outer_var),
-    v_x=jnp.zeros_like(outer_var),
-    m_z=jnp.zeros_like(inner_var),
-    v_z=jnp.zeros_like(inner_var),
-    m_y=jnp.zeros_like(inner_var),
-    v_y=jnp.zeros_like(inner_var)
-)
-carry, _ = jax.lax.scan(
-    f2sa_one_iter,
-    init=init,
-    xs=None,
-    length=max_iter,
-)
-
-return (
-    carry['inner_var'], carry['outer_var'], carry['lagrangian_inner_var'],
-    carry['lmbda'],
-    {k: v for k, v in carry.items()
-     if k not in ['inner_var', 'outer_var', 'lagrangian_inner_var',
-                  'lmbda']}
-)
 
