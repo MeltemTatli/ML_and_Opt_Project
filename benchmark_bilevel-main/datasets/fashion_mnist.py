@@ -49,7 +49,7 @@ def download_mnist():
 
 class Dataset(BaseDataset):
 
-    name = "mnist"
+    name = "fashion_mnist"
 
     install_cmd = "conda"
     requirements = ["scikit-learn"]
