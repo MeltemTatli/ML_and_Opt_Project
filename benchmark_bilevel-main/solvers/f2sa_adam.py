@@ -534,10 +534,10 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
         # Update the variables
         inner_var -= lr_inner * d_inner_var
         lagrangian_inner_var -= lr_lagrangian * d_lagrangian_inner_var
-        return (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler)
+        return (inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler)
         
-    init_state = (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler)
-    inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler = jax.lax.fori_loop(0, n_steps, iter, init_state)
+    init_state = (inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler)
+    inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler = jax.lax.fori_loop(0, n_steps, iter, init_state)
 
     return (inner_var, lagrangian_inner_var, state_inner_sampler,
             state_outer_sampler)
