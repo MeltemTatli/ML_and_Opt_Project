@@ -526,7 +526,7 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 
 
         # Calculate adam_grad
-        m_z, v_z = adam_grad_jax(d_inner_var, m_z, v_z, beta1, beta2, i)
+        m , v = adam_grad_jax(d_inner_var, m_z, v_z, beta1, beta2, i)
         d_inner_var = m_z / (jnp.sqrt(v_z) + epsilon)
         m_y, v_y = adam_grad_jax(d_lagrangian_inner_var, m_y, v_y, beta1, beta2, i)
         d_lagrangian_inner_var = m_y / (jnp.sqrt(v_y) + epsilon)
@@ -539,7 +539,7 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
     init_state = (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler)
     inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler = jax.lax.fori_loop(0, n_steps, iter, init_state)
 
-    return (inner_var, lagrangian_inner_var,m_z, v_z, m_y, v_y,   state_inner_sampler,
+    return (inner_var, lagrangian_inner_var, state_inner_sampler,
             state_outer_sampler)
 
 
@@ -668,12 +668,14 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         # calculate adam_grad
         m_x,v_x = adam_grad_jax(d_outer_var, m_x, v_x, beta1, beta2, i)
         d_outer_var = m_x/(jnp.sqrt(v_x)+epsilon)
+
         
         # Update inner variable with adam.
         carry['outer_var'] -= lr_outer * d_outer_var
         carry['lmbda'] += d_lmbda
+        
 
-        return carry, _
+        return carry, m_x, v_x, _
 
     init = dict(
         inner_var=inner_var,
@@ -684,7 +686,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         state_inner_sampler=state_inner_sampler,
         state_outer_sampler=state_outer_sampler,
     )
-    carry, _ = jax.lax.scan(
+    carry, m_x, v_x _ = jax.lax.scan(
         f2sa_one_iter,
         init=init,
         xs=None,
