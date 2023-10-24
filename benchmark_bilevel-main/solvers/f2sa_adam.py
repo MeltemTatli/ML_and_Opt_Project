@@ -128,18 +128,16 @@ class Solver(BaseSolver):
             outer_sampler, self.state_outer_sampler \
                 = init_sampler(n_samples=n_outer_samples,
                                batch_size=self.batch_size_outer)
-            
-            self.inner_loop = jax.jit(functools.partial(
+            self.inner_loop = partial(
                 inner_f2sa_adam_jax,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler,
                 grad_inner=jax.grad(self.f_inner, argnums=0),
                 grad_outer=jax.grad(self.f_outer, argnums=0)
-            ))
-
+            )
             self.f2sa_adam = partial(
-                f2sa_adam_jax,
-                inner_f2sa_adam=self.inner_loop,
+                f2sa_jax,
+                inner_f2sa=self.inner_loop,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler
             )
@@ -207,7 +205,8 @@ class Solver(BaseSolver):
         # Start algorithm
         while callback():
             if self.framework == 'jax':
-                inner_var, outer_var, lagrangian_inner_var, lmbda, carry = self.f2sa_adam(
+                inner_var, outer_var, lagrangian_inner_var, lmbda, \
+                    carry = self.f2sa_adam(
                         self.f_inner, self.f_outer,
                         inner_var, outer_var, lagrangian_inner_var, lmbda,
                         n_inner_steps=self.n_inner_steps,
