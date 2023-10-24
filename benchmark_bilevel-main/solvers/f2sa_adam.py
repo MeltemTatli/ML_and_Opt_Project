@@ -136,7 +136,7 @@ class Solver(BaseSolver):
                 grad_outer=jax.grad(self.f_outer, argnums=0)
             )
             self.f2sa_adam = partial(
-                f2sa_jax,
+                f2sa_adam_jax,
                 inner_f2sa=self.inner_loop,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler
