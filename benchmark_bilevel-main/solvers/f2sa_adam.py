@@ -401,7 +401,7 @@ def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
             inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
             outer_var, lmbda, inner_sampler=inner_sampler,
             outer_sampler=outer_sampler, lr_inner=lr_inner,
-            lr_lagrangian=lr_lagrangian, n_steps=n_inner_steps, beta1, beta2, epsilon
+            lr_lagrangian=lr_lagrangian, n_steps=n_inner_steps, beta1=beta1, beta2=beta2, epsilon=epsilon
         )
 
         # Compute oracles
