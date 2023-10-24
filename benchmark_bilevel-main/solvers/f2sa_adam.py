@@ -95,24 +95,24 @@ class Solver(BaseSolver):
 
         if self.framework == 'numba':
             # JIT necessary functions and classes
-            njit_f2sa = njit(_f2sa_adam)
+            njit_f2sa_adam = njit(_f2sa_adam)
             self.inner_loop = njit(inner_f2sa_adam)
             self.MinibatchSampler = jitclass(MinibatchSampler, mbs_spec)
             self.LearningRateScheduler = jitclass(
                 LearningRateScheduler, sched_spec
             )
 
-            def f2sa(*args, **kwargs):
-                return njit_f2sa(self.inner_loop, *args, **kwargs)
-            self.f2sa = f2sa
+            def f2sa_adam(*args, **kwargs):
+                return njit_f2sa_adam(self.inner_loop, *args, **kwargs)
+            self.f2sa_adam = f2sa_adam
         elif self.framework == "none":
             self.inner_loop = inner_f2sa_adam
             self.MinibatchSampler = MinibatchSampler
             self.LearningRateScheduler = LearningRateScheduler
 
-            def f2sa(*args, **kwargs):
-                return _f2sa(self.inner_loop, *args, **kwargs)
-            self.f2sa = f2sa
+            def f2sa_adam(*args, **kwargs):
+                return _f2sa_adam(self.inner_loop, *args, **kwargs)
+            self.f2sa_adam = f2sa_adam
         elif self.framework == 'jax':
             self.f_inner = jax.jit(
                 partial(self.f_inner, batch_size=self.batch_size_inner)
@@ -127,15 +127,15 @@ class Solver(BaseSolver):
                 = init_sampler(n_samples=n_outer_samples,
                                batch_size=self.batch_size_outer)
             self.inner_loop = partial(
-                inner_f2sa_jax,
+                inner_f2sa_adam_jax,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler,
                 grad_inner=jax.grad(self.f_inner, argnums=0),
                 grad_outer=jax.grad(self.f_outer, argnums=0)
             )
-            self.f2sa = partial(
-                f2sa_jax,
-                inner_f2sa=self.inner_loop,
+            self.f2sa_adam = partial(
+                f2sa_adam_jax,
+                inner_f2sa_adam=self.inner_loop,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler
             )
@@ -204,14 +204,14 @@ class Solver(BaseSolver):
         while callback():
             if self.framework == 'jax':
                 inner_var, outer_var, lagrangian_inner_var, lmbda, \
-                    carry = self.f2sa(
+                    carry = self.f2sa_adam(
                         self.f_inner, self.f_outer,
                         inner_var, outer_var, lagrangian_inner_var, lmbda,
                         n_inner_steps=self.n_inner_steps,
                         max_iter=eval_freq, **carry
                     )
             else:
-                inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa(
+                inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa_adam(
                     self.f_inner, self.f_outer, inner_var, outer_var,
                     lagrangian_inner_var, lmbda, inner_sampler=inner_sampler,
                     outer_sampler=outer_sampler, lr_scheduler=lr_scheduler,
@@ -248,7 +248,7 @@ def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
                outer_var, lmbda, inner_sampler=None, outer_sampler=None,
                lr_inner=.1, lr_lagrangian=.1, n_steps=10, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
     """
-    Inner loop of F2SA algorithm.
+    Inner loop of F2SA algorithm with adam.
 
     Parameters
     ----------
@@ -324,12 +324,12 @@ def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
           lagrangian_inner_var, lmbda, inner_sampler=None, outer_sampler=None,
           lr_scheduler=None, n_inner_steps=10, max_iter=1, seed=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
     """
-    Implementation of the F2SA algorithm.
+    Implementation of the F2SA algorithm with adam.
 
     Parameters
     ----------
     inner_loop : callable
-        Inner loop of F2SA_adam algorithm.
+        Inner loop of F2SA_adam algorithm with adam.
 
     inner_oracle, outer_oracle : oracle classes
         Inner and outer oracles.
@@ -527,9 +527,9 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 
         # Calculate adam_grad
         m_z,v_z = adam_grad_jax(d_inner_var, m_z, v_z, beta1, beta2, i)
-        d_inner_var = m_z/(np.sqrt(v_z)+epsilon)
+        d_inner_var = m_z/(jnp.sqrt(v_z)+epsilon)
         m_y,v_y = adam_grad_jax(d_lagrangian_inner_var, m_y, v_y, beta1, beta2, i)
-        d_lagrangian_inner_var = m_y/(np.sqrt(v_y)+epsilon)
+        d_lagrangian_inner_var = m_y/(jnp.sqrt(v_y)+epsilon)
         
         # Update the variables
         inner_var -= lr_inner * d_inner_var
@@ -547,13 +547,13 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 
 @partial(jax.jit, static_argnums=(0, 1),
          static_argnames=('inner_sampler', 'outer_sampler', 'max_iter',
-                          'n_inner_steps', 'inner_f2sa'))
+                          'n_inner_steps', 'inner_f2sa_adam'))
 def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
              lmbda, state_inner_sampler=None, state_outer_sampler=None,
-             state_lr=None, inner_f2sa=None, n_inner_steps=1,
+             state_lr=None, inner_f2sa_adam=None, n_inner_steps=1,
              inner_sampler=None, outer_sampler=None, max_iter=1):
     """
-    Jax implementation of the F2SA algorithm.
+    Jax implementation of the F2SA algorithm with adam.
 
     Parameters
     ----------
@@ -581,8 +581,8 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
     state_lr : dict
         State of the learning rate scheduler.
 
-    inner_f2sa : callable
-        Inner loop of F2SA algorithm.
+    inner_f2sa_adam : callable
+        Inner loop of F2SA algorithm with adam.
 
     n_inner_steps : int
         Number of steps of the inner loop.
@@ -637,7 +637,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         # Run the inner procedure
         carry['inner_var'], carry['lagrangian_inner_var'], \
             carry['state_inner_sampler'], carry['state_outer_sampler'] = \
-            inner_f2sa(
+            inner_f2sa_adam(
                 carry['inner_var'], carry['lagrangian_inner_var'],
                 carry['outer_var'], carry['lmbda'],
                 carry['state_inner_sampler'], carry['state_outer_sampler'],
@@ -668,8 +668,8 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         d_outer_var += carry['lmbda'] * (grad_inner_star - grad_inner_outer)
 
         # calculate adam_grad
-        m_x,v_x = adam_grad(d_outer_var, m_x, v_x, beta1, beta2, i)
-        d_outer_var = m_x/(np.sqrt(v_x)+epsilon)
+        m_x,v_x = adam_grad_jax(d_outer_var, m_x, v_x, beta1, beta2, i)
+        d_outer_var = m_x/(jnp.sqrt(v_x)+epsilon)
         
         # Update inner variable with adam.
         carry['outer_var'] -= lr_outer * d_outer_var
