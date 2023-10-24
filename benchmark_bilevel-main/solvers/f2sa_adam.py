@@ -25,11 +25,11 @@ with safe_import_context() as import_ctx:
 
 
 class Solver(BaseSolver):
-    """Fully First-order Stochastic Approximation (F2SA).
+    """Fully First-order Stochastic Approximation (F2SA) with Adam.
 
     J. Kwon, D. Kwon, S. Wright and R. Noewak, "A Fully First-Order Method for
     Stochastic Bilevel Optimization", ICML 2023."""
-    name = 'F2SA'
+    name = 'F2SA_adam'
 
     stopping_criterion = SufficientProgressCriterion(
         patience=constants.PATIENCE, strategy='callback'
@@ -46,6 +46,8 @@ class Solver(BaseSolver):
         'lmbda0': [1.],
         'delta_lmbda': [.1],
         'n_inner_steps': [10],
+        'beta1': [.9],
+        'beta2': [.99],
     }
 
     @staticmethod
@@ -93,8 +95,8 @@ class Solver(BaseSolver):
 
         if self.framework == 'numba':
             # JIT necessary functions and classes
-            njit_f2sa = njit(_f2sa)
-            self.inner_loop = njit(inner_f2sa)
+            njit_f2sa = njit(_f2sa_adam)
+            self.inner_loop = njit(inner_f2sa_adam)
             self.MinibatchSampler = jitclass(MinibatchSampler, mbs_spec)
             self.LearningRateScheduler = jitclass(
                 LearningRateScheduler, sched_spec
@@ -104,7 +106,7 @@ class Solver(BaseSolver):
                 return njit_f2sa(self.inner_loop, *args, **kwargs)
             self.f2sa = f2sa
         elif self.framework == "none":
-            self.inner_loop = inner_f2sa
+            self.inner_loop = inner_f2sa_adam
             self.MinibatchSampler = MinibatchSampler
             self.LearningRateScheduler = LearningRateScheduler
 
