@@ -227,9 +227,17 @@ class Solver(BaseSolver):
                     memory=self.memory)
 
 
-def inner_f2sa(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
+def adam_grad(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t):
+    m = beta1*pre_m+(1-beta1)*grad_info
+    v = beta2*pre_m+(1-beta2)*grad_info**2
+    m = m/(1-np.power(beta1,t))
+    v = v/(1-np.power(beta2,t))
+    return m,v
+
+
+def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
                outer_var, lmbda, inner_sampler=None, outer_sampler=None,
-               lr_inner=.1, lr_lagrangian=.1, n_steps=10):
+               lr_inner=.1, lr_lagrangian=.1, n_steps=10, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
     """
     Inner loop of F2SA algorithm.
 
@@ -270,7 +278,13 @@ def inner_f2sa(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
     lagrangian_inner_var : array, shape (d_inner,)
         Updated inner variable.
     """
-    for _ in range(n_steps):
+    
+    m_z = np.zeros(inner_var.shape)
+    v_z = np.zeros(inner_var.shape)    
+    m_y = np.zeros(inner_var.shape)
+    v_y = np.zeros(inner_var.shape)
+                   
+    for t in range(n_steps):
         # Get the batches and oracles
         slice_inner, _ = inner_sampler.get_batch()
         slice_inner_lagrangian, _ = inner_sampler.get_batch()
@@ -285,13 +299,19 @@ def inner_f2sa(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
             inner_var, outer_var, slice_outer
         )
 
-        # Update the variables
+        # Calculate adam_grad
+        m_z,v_z = adam_grad(d_inner_var, m_z, v_z, beta1, beta2, t)
+        d_inner_var = m_z/(np.sqrt(v_z)+epsilon)
+        m_y,v_y = adam_grad(d_lagrangian_inner_var, m_y, v_y, beta1, beta2, t)
+        d_lagrangian_inner_var = m_y/(np.sqrt(v_y)+epsilon)
+        
+        # Update the variables via adam
         inner_var -= lr_inner * d_inner_var
         lagrangian_inner_var -= lr_lagrangian * d_lagrangian_inner_var
     return inner_var, lagrangian_inner_var
 
 
-def _f2sa(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
+def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
           lagrangian_inner_var, lmbda, inner_sampler=None, outer_sampler=None,
           lr_scheduler=None, n_inner_steps=10, max_iter=1, seed=None):
     """
@@ -300,7 +320,7 @@ def _f2sa(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
     Parameters
     ----------
     inner_loop : callable
-        Inner loop of F2SA algorithm.
+        Inner loop of F2SA_adam algorithm.
 
     inner_oracle, outer_oracle : oracle classes
         Inner and outer oracles.
@@ -361,6 +381,9 @@ def _f2sa(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
     if seed is not None:
         np.random.seed(seed)
 
+    m_x = np.zeros(outer_var.shape)
+    v_x = np.zeros(outer_var.shape)  
+
     for i in range(max_iter):
         lr_inner, lr_lagrangian, lr_outer, d_lmbda = lr_scheduler.get_lr()
 
@@ -369,7 +392,7 @@ def _f2sa(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
             inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
             outer_var, lmbda, inner_sampler=inner_sampler,
             outer_sampler=outer_sampler, lr_inner=lr_inner,
-            lr_lagrangian=lr_lagrangian, n_steps=n_inner_steps
+            lr_lagrangian=lr_lagrangian, n_steps=n_inner_steps, beta1, beta2, epsilon
         )
 
         # Compute oracles
@@ -386,6 +409,12 @@ def _f2sa(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
 
         d_outer_var += lmbda * (grad_inner_star - grad_inner)
 
+
+        # calculate adam_grad
+        m_x,v_x = adam_grad(d_outer_var, m_x, v_x, beta1, beta2, i)
+        d_outer_var = m_x/(np.sqrt(v_x)+epsilon)
+
+        
         # Step.2 - update the variables
         outer_var -= lr_outer * d_outer_var
         lmbda += d_lmbda
