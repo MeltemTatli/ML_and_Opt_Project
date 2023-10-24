@@ -686,7 +686,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         state_inner_sampler=state_inner_sampler,
         state_outer_sampler=state_outer_sampler,
     )
-    carry, m_x, v_x _ = jax.lax.scan(
+    carry, m_x, v_x ,_ = jax.lax.scan(
         f2sa_one_iter,
         init=init,
         xs=None,
