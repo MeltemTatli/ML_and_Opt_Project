@@ -31,7 +31,7 @@ class Solver(BaseSolver):
 
     J. Kwon, D. Kwon, S. Wright and R. Noewak, "A Fully First-Order Method for
     Stochastic Bilevel Optimization", ICML 2023."""
-    name = 'F2SA_adam'
+    name = 'f2sa_adam_gpu'
 
     stopping_criterion = SufficientProgressCriterion(
         patience=constants.PATIENCE, strategy='callback'
@@ -97,24 +97,24 @@ class Solver(BaseSolver):
 
         if self.framework == 'numba':
             # JIT necessary functions and classes
-            njit_f2sa_adam = njit(_f2sa_adam)
-            self.inner_loop = njit(inner_f2sa_adam)
+            njit_f2sa_adam_gpu = njit(_f2sa_adam_gpu)
+            self.inner_loop = njit(inner_f2sa_adam_gpu)
             self.MinibatchSampler = jitclass(MinibatchSampler, mbs_spec)
             self.LearningRateScheduler = jitclass(
                 LearningRateScheduler, sched_spec
             )
 
-            def f2sa_adam(*args, **kwargs):
-                return njit_f2sa_adam(self.inner_loop, *args, **kwargs)
-            self.f2sa_adam = f2sa_adam
+            def f2sa_adam_gpu(*args, **kwargs):
+                return njit_f2sa_adam_gpu(self.inner_loop, *args, **kwargs)
+            self.f2sa_adam_gpu = f2sa_adam_gpu
         elif self.framework == "none":
-            self.inner_loop = inner_f2sa_adam
+            self.inner_loop = inner_f2sa_adam_gpu
             self.MinibatchSampler = MinibatchSampler
             self.LearningRateScheduler = LearningRateScheduler
 
-            def f2sa_adam(*args, **kwargs):
-                return _f2sa_adam(self.inner_loop, *args, **kwargs)
-            self.f2sa_adam = f2sa_adam
+            def f2sa_adam_gpu(*args, **kwargs):
+                return _f2sa_adam_gpu(self.inner_loop, *args, **kwargs)
+            self.f2sa_adam_gpu = f2sa_adam_gpu
         elif self.framework == 'jax':
             self.f_inner = jax.jit(
                 partial(self.f_inner, batch_size=self.batch_size_inner)
@@ -129,15 +129,15 @@ class Solver(BaseSolver):
                 = init_sampler(n_samples=n_outer_samples,
                                batch_size=self.batch_size_outer)
             self.inner_loop = partial(
-                inner_f2sa_adam_jax,
+                inner_f2sa_adam_gpu_jax,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler,
                 grad_inner=jax.grad(self.f_inner, argnums=0),
                 grad_outer=jax.grad(self.f_outer, argnums=0)
             )
-            self.f2sa_adam = partial(
-                f2sa_adam_jax,
-                inner_f2sa_adam=self.inner_loop,
+            self.f2sa_adam_gpu = partial(
+                f2sa_adam_gpu_jax,
+                inner_f2sa_adam_gpu=self.inner_loop,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler
             )
@@ -206,14 +206,14 @@ class Solver(BaseSolver):
         while callback():
             if self.framework == 'jax':
                 inner_var, outer_var, lagrangian_inner_var, lmbda, \
-                    carry = self.f2sa_adam(
+                    carry = self.f2sa_adam_gpu(
                         self.f_inner, self.f_outer,
                         inner_var, outer_var, lagrangian_inner_var, lmbda,
                         n_inner_steps=self.n_inner_steps,
                         max_iter=eval_freq, **carry
                     )
             else:
-                inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa_adam(
+                inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa_adam_gpu(
                     self.f_inner, self.f_outer, inner_var, outer_var,
                     lagrangian_inner_var, lmbda, inner_sampler=inner_sampler,
                     outer_sampler=outer_sampler, lr_scheduler=lr_scheduler,
@@ -246,7 +246,7 @@ def adam_grad_jax(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
     return m,v
 
 
-def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
+def inner_f2sa_adam_gpu(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
                outer_var, lmbda, inner_sampler=None, outer_sampler=None,
                lr_inner=.1, lr_lagrangian=.1, n_steps=10, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
@@ -322,7 +322,7 @@ def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
     return inner_var, lagrangian_inner_var
 
 
-def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
+def _f2sa_adam_gpu(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
           lagrangian_inner_var, lmbda, inner_sampler=None, outer_sampler=None,
           lr_scheduler=None, n_inner_steps=10, max_iter=1, seed=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
@@ -331,7 +331,7 @@ def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
     Parameters
     ----------
     inner_loop : callable
-        Inner loop of F2SA_adam algorithm with adam.
+        Inner loop of f2sa_adam_gpu algorithm with adam.
 
     inner_oracle, outer_oracle : oracle classes
         Inner and outer oracles.
@@ -435,7 +435,7 @@ def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
 
 @partial(jax.jit, static_argnames=('inner_sampler', 'outer_sampler', 'n_steps',
                                    'grad_inner', 'grad_outer'))
-def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
+def inner_f2sa_adam_gpu_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
                    state_inner_sampler, state_outer_sampler,
                    inner_sampler=None, outer_sampler=None,
                    lr_inner=.1, lr_lagrangian=.1, n_steps=10, grad_inner=None,
@@ -547,11 +547,11 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 
 @partial(jax.jit, static_argnums=(0, 1),
          static_argnames=('inner_sampler', 'outer_sampler', 'max_iter',
-                          'n_inner_steps', 'inner_f2sa_adam'))
+                          'n_inner_steps', 'inner_f2sa_adam_gpu'))
 
-def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
+def f2sa_adam_gpu_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
              lmbda, state_inner_sampler=None, state_outer_sampler=None,
-             state_lr=None, inner_f2sa_adam=None, n_inner_steps=1,
+             state_lr=None, inner_f2sa_adam_gpu=None, n_inner_steps=1,
              inner_sampler=None, outer_sampler=None, max_iter=1, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
     Jax implementation of the F2SA algorithm with adam.
@@ -582,7 +582,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
     state_lr : dict
         State of the learning rate scheduler.
 
-    inner_f2sa_adam : callable
+    inner_f2sa_adam_gpu : callable
         Inner loop of F2SA algorithm with adam.
 
     n_inner_steps : int
@@ -626,7 +626,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
     grad_outer_outer_var = jax.grad(f_outer, argnums=1)
 
 
-    def f2sa_adam_one_iter(carry, i):
+    def f2sa_adam_gpu_one_iter(carry, i):
         step_sizes, carry['state_lr'] = update_lr(carry['state_lr'])
         lr_inner, lr_lagrangian, lr_outer, d_lmbda = step_sizes
     
@@ -634,7 +634,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         carry['inner_var'], carry['lagrangian_inner_var'], \
         carry['state_inner_sampler'], carry['state_outer_sampler'], \
         carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'] = \
-            inner_f2sa_adam(
+            inner_f2sa_adam_gpu(
                 carry['inner_var'], carry['lagrangian_inner_var'],
                 carry['outer_var'], carry['lmbda'],
                 carry['state_inner_sampler'], carry['state_outer_sampler'],
@@ -691,7 +691,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         v_y=jnp.zeros_like(inner_var)
     )
     carry, _ = jax.lax.scan(
-        f2sa_adam_one_iter,
+        f2sa_adam_gpu_one_iter,
         init=init,
         xs=None,
         length=max_iter,
