@@ -233,14 +233,14 @@ class Solver(BaseSolver):
 
 def adam_grad(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
     m = beta1*pre_m+(1-beta1)*grad_info
-    v = beta2*pre_m+(1-beta2)*grad_info**2
+    v = beta2*pre_v+(1-beta2)*grad_info**2
     m = m/(1-np.power(beta1,t+1))
     v = v/(1-np.power(beta2,t+1))
     return m,v
 
 def adam_grad_jax(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
     m = beta1*pre_m+(1-beta1)*grad_info
-    v = beta2*pre_m+(1-beta2)*jnp.square(grad_info)
+    v = beta2*pre_v+(1-beta2)*jnp.square(grad_info)
     m = m/(1-jnp.power(beta1,t+1))
     v = v/(1-jnp.power(beta2,t+1))
     return m,v
