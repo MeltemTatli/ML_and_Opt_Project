@@ -44,7 +44,7 @@ class Solver(BaseSolver):
         'batch_size': [64],
         'eval_freq': [128],
         'random_state': [1],
-        'framework': ["none"],
+        'framework': ["jax"],
         'lmbda0': [1.],
         'delta_lmbda': [.1],
         'n_inner_steps': [10],
