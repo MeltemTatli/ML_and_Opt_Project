@@ -248,7 +248,7 @@ def adam_grad_jax(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
 
 def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
                outer_var, lmbda, inner_sampler=None, outer_sampler=None,
-               lr_inner=.1, lr_lagrangian=.1, n_steps=10, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
+               lr_inner=.1, lr_lagrangian=.1, n_steps=10, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
     Inner loop of F2SA algorithm with adam.
 
@@ -324,7 +324,7 @@ def inner_f2sa_adam(inner_oracle, outer_oracle, inner_var, lagrangian_inner_var,
 
 def _f2sa_adam(inner_loop, inner_oracle, outer_oracle, inner_var, outer_var,
           lagrangian_inner_var, lmbda, inner_sampler=None, outer_sampler=None,
-          lr_scheduler=None, n_inner_steps=10, max_iter=1, seed=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
+          lr_scheduler=None, n_inner_steps=10, max_iter=1, seed=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
     Implementation of the F2SA algorithm with adam.
 
@@ -439,7 +439,7 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
                    state_inner_sampler, state_outer_sampler,
                    inner_sampler=None, outer_sampler=None,
                    lr_inner=.1, lr_lagrangian=.1, n_steps=10, grad_inner=None,
-                   grad_outer=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
+                   grad_outer=None, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
     Jax implementation of the inner loop of F2SA algorithm.
 
@@ -552,7 +552,7 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
              lmbda, state_inner_sampler=None, state_outer_sampler=None,
              state_lr=None, inner_f2sa_adam=None, n_inner_steps=1,
-             inner_sampler=None, outer_sampler=None, max_iter=1, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-3):
+             inner_sampler=None, outer_sampler=None, max_iter=1, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
     """
     Jax implementation of the F2SA algorithm with adam.
 
