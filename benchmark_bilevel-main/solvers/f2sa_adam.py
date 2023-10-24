@@ -544,8 +544,8 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
 
 
 @partial(jax.jit, static_argnums=(0, 1),
-         static_argnames=('inner_sampler', 'outer_sampler', 'max_iter',
-                          'n_inner_steps', 'inner_f2sa_adam'))
+         static_argnames=('inner_sampler', 'outer_sampler', 'max_iter', 'n_inner_steps'))
+
 def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
              lmbda, state_inner_sampler=None, state_outer_sampler=None,
              state_lr=None, inner_f2sa_adam=None, n_inner_steps=1,
