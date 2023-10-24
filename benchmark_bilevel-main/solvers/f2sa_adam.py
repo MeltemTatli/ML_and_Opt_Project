@@ -503,7 +503,7 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
     v_y = jnp.zeros(inner_var.shape)
 
     def iter(i, args):
-        (inner_var, lagrangian_inner_var, state_inner_sampler,
+        (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler,
          state_outer_sampler) = args
         # Get the batches and oracles
         start_idx_inner, *_, state_inner_sampler = inner_sampler(
@@ -521,12 +521,12 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
             lagrangian_inner_var, outer_var, start_idx_lagrangian
         )
         d_lagrangian_inner_var += grad_outer(
-            inner_var, outer_var, start_idx_outer
+            inner_var, outer_var, start_idx_outer            
         )
 
 
         # Calculate adam_grad
-        m , v = adam_grad_jax(d_inner_var, m_z, v_z, beta1, beta2, i)
+        m_z , v_z = adam_grad_jax(d_inner_var, m_z, v_z, beta1, beta2, i)
         d_inner_var = m_z / (jnp.sqrt(v_z) + epsilon)
         m_y, v_y = adam_grad_jax(d_lagrangian_inner_var, m_y, v_y, beta1, beta2, i)
         d_lagrangian_inner_var = m_y / (jnp.sqrt(v_y) + epsilon)
@@ -534,10 +534,10 @@ def inner_f2sa_adam_jax(inner_var, lagrangian_inner_var,  outer_var, lmbda,
         # Update the variables
         inner_var -= lr_inner * d_inner_var
         lagrangian_inner_var -= lr_lagrangian * d_lagrangian_inner_var
-        return (inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler)
+        return (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler)
         
-    init_state = (inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler)
-    inner_var, lagrangian_inner_var, state_inner_sampler, state_outer_sampler = jax.lax.fori_loop(0, n_steps, iter, init_state)
+    init_state = (inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler)
+    inner_var, lagrangian_inner_var, m_z, v_z, m_y, v_y, state_inner_sampler, state_outer_sampler = jax.lax.fori_loop(0, n_steps, iter, init_state)
 
     return (inner_var, lagrangian_inner_var, state_inner_sampler,
             state_outer_sampler)
