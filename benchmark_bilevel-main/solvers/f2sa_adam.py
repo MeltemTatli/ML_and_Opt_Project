@@ -229,14 +229,14 @@ class Solver(BaseSolver):
                     memory=self.memory)
 
 
-def adam_grad(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t):
+def adam_grad(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
     m = beta1*pre_m+(1-beta1)*grad_info
     v = beta2*pre_m+(1-beta2)*grad_info**2
     m = m/(1-np.power(beta1,t))
     v = v/(1-np.power(beta2,t))
     return m,v
 
-def adam_grad_jax(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t):
+def adam_grad_jax(grad_info, pre_m, pre_v, beta1 = 0.9, beta2 = 0.999, t=1):
     m = beta1*pre_m+(1-beta1)*grad_info
     v = beta2*pre_m+(1-beta2)*jnp.square(grad_info)
     m = m/(1-jnp.power(beta1,t))
