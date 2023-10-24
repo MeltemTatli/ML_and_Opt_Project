@@ -127,13 +127,13 @@ class Solver(BaseSolver):
                 = init_sampler(n_samples=n_outer_samples,
                                batch_size=self.batch_size_outer)
             
-            self.inner_loop = lambda *args, **kwargs: inner_f2sa_adam_jax(
-                *args, **kwargs,
+            self.inner_loop = jax.jit(functools.partial(
+                inner_f2sa_adam_jax,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler,
                 grad_inner=jax.grad(self.f_inner, argnums=0),
                 grad_outer=jax.grad(self.f_outer, argnums=0)
-            )
+            ))
 
             self.f2sa_adam = partial(
                 f2sa_adam_jax,
