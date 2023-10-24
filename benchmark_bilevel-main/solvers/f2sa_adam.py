@@ -137,7 +137,7 @@ class Solver(BaseSolver):
             )
             self.f2sa_adam = partial(
                 f2sa_adam_jax,
-                inner_f2sa=self.inner_loop,
+                inner_f2sa_adam=self.inner_loop,
                 inner_sampler=inner_sampler,
                 outer_sampler=outer_sampler
             )
@@ -625,7 +625,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
     grad_outer_outer_var = jax.grad(f_outer, argnums=1)
 
 
-    def f2sa_one_iter(carry, i):
+    def f2sa_adam_one_iter(carry, i):
         step_sizes, carry['state_lr'] = update_lr(carry['state_lr'])
         lr_inner, lr_lagrangian, lr_outer, d_lmbda = step_sizes
     
@@ -690,7 +690,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
         v_y=jnp.zeros_like(inner_var)
     )
     carry, _ = jax.lax.scan(
-        f2sa_one_iter,
+        f2sa_adam_one_iter,
         init=init,
         xs=None,
         length=max_iter,
