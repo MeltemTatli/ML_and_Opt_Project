@@ -203,12 +203,12 @@ class Solver(BaseSolver):
         # Start algorithm
         while callback():
             if self.framework == 'jax':
-                results = self.f2sa_adam(
-                    self.f_inner, self.f_outer,
-                    self.inner_var, self.outer_var, self.lagrangian_inner_var, self.lmbda,
-                    n_inner_steps=self.n_inner_steps,
-                    max_iter=eval_freq, **carry
-                )
+                inner_var, outer_var, lagrangian_inner_var, lmbda, carry = self.f2sa_adam(
+                        self.f_inner, self.f_outer,
+                        inner_var, outer_var, lagrangian_inner_var, lmbda,
+                        n_inner_steps=self.n_inner_steps,
+                        max_iter=eval_freq, **carry
+                    )
             else:
                 inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa_adam(
                     self.f_inner, self.f_outer, inner_var, outer_var,
