@@ -3,6 +3,8 @@ from benchopt.stopping_criterion import SufficientProgressCriterion
 
 from benchopt import safe_import_context
 
+import functools
+
 with safe_import_context() as import_ctx:
     import numpy as np
     from numba import njit
