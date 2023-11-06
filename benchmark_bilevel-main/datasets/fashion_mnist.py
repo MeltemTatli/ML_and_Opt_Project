@@ -32,7 +32,7 @@ def download_mnist():
     }
     for fname in filenames.values():
         print("Downloading " + fname + "...")
-        request.urlretrieve(f"{BASE_URL}/{fname}", DATA_DIR / fname)
+        request.urlretrieve(f"{BASE_URL}{fname}", DATA_DIR / fname)
     print("Download complete.")
     mnist = {}
     for key, fname in filenames.items():
