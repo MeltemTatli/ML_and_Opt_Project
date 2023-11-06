@@ -296,4 +296,5 @@ class MultiLogRegOracle(BaseOracle):
             y = y.argmax(axis=1)
         theta = np.array(theta_flat).reshape(self.n_features, self.n_classes)
         prod = x @ theta
-        return np.mean(np.argmax(prod, axis=1) != y)
+        print(np.mean(np.argmax(prod, axis=1) == y))
+        return np.mean(np.argmax(prod, axis=1) == y)
