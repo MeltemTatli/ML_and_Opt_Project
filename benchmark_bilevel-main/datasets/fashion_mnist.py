@@ -42,7 +42,7 @@ def download_mnist():
             mnist[key] = np.frombuffer(
                 f.read(), np.uint8, offset=offset
             ).reshape(*shape)
-    with open("mnist.pkl", "wb") as f:
+    with open("fashion_mnist.pkl", "wb") as f:
         pickle.dump(mnist, f)
     print("Save complete.")
 
@@ -63,10 +63,10 @@ class Dataset(BaseDataset):
     def get_data(self):
         rng = np.random.RandomState(self.random_state)
         ratio = self.ratio
-        if not Path("mnist.pkl").exists():
+        if not Path("fashion_mnist.pkl").exists():
             download_mnist()
 
-        with open("mnist.pkl", "rb") as f:
+        with open("fashion_mnist.pkl", "rb") as f:
             mnist = pickle.load(f)
 
         X_train, y_train, X_test, y_test = (
