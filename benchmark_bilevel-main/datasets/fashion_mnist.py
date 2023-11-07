@@ -91,6 +91,7 @@ class Dataset(BaseDataset):
         X_train = scaler.fit_transform(X_train)
         X_test = scaler.transform(X_test)
         X_val = scaler.transform(X_val)
+        X_train_val = scaler.fit_transform(X_train_val)
 
         def get_inner_oracle(framework="none", get_full_batch=False):
             X = convert_array_framework(X_train, framework)
