@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 from scipy import sparse
 import scipy.special as sc
 from scipy.sparse import linalg as splinalg
+from sklearn.metrics import confusion_matrix
 
 from .base import BaseOracle
 
@@ -298,3 +299,10 @@ class MultiLogRegOracle(BaseOracle):
         prod = x @ theta
         #print(np.mean(np.argmax(prod, axis=1) == y))
         return np.mean(np.argmax(prod, axis=1) == y)
+
+    def confusion_matrix(self, theta_flat, lmbda, x, y):
+        if y.ndim == 2:
+            y = y.argmax(axis=1)
+        theta = np.array(theta_flat).reshape(self.n_features, self.n_classes)
+        prod = x @ theta
+        return confusion_matrix(y, np.argmax(prod, axis=1))
