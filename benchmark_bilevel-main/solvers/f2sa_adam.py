@@ -210,14 +210,14 @@ class Solver(BaseSolver):
                         self.f_inner, self.f_outer,
                         inner_var, outer_var, lagrangian_inner_var, lmbda,
                         n_inner_steps=self.n_inner_steps,
-                        max_iter=eval_freq, **carry
+                        max_iter=eval_freq, beta1 = self.beta1, beta2 = self.beta2, **carry
                     )
             else:
                 inner_var, outer_var, lagrangian_inner_var, lmbda = self.f2sa_adam(
                     self.f_inner, self.f_outer, inner_var, outer_var,
                     lagrangian_inner_var, lmbda, inner_sampler=inner_sampler,
                     outer_sampler=outer_sampler, lr_scheduler=lr_scheduler,
-                    n_inner_steps=self.n_inner_steps, max_iter=eval_freq,
+                    n_inner_steps=self.n_inner_steps, max_iter=eval_freq, beta1 = self.beta1, beta2 = self.beta2,
                     seed=rng.randint(constants.MAX_SEED)
                 )
             memory_end = get_memory()
@@ -641,7 +641,7 @@ def f2sa_adam_jax(f_inner, f_outer, inner_var, outer_var, lagrangian_inner_var,
                 carry['m_z'], carry['v_z'], carry['m_y'], carry['v_y'],
                 inner_sampler=inner_sampler, outer_sampler=outer_sampler,
                 lr_inner=lr_inner, lr_lagrangian=lr_lagrangian,
-                n_steps=n_inner_steps
+                n_steps=n_inner_steps, beta1 = beta1, beta2 = beta2
             )
     
         # Compute oracles and get the update direction of the outer variable
