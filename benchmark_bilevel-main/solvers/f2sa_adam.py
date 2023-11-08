@@ -39,7 +39,7 @@ class Solver(BaseSolver):
 
     # any parameter defined here is accessible as a class attribute
     parameters = {
-        'step_size': [.1, .01, .001, .0001],
+        'step_size': [.1,.01, .05, .001, .0005],
         'outer_ratio': [1.],
         'batch_size': [8,16,32,64],
         'eval_freq': [128],
@@ -48,8 +48,8 @@ class Solver(BaseSolver):
         'lmbda0': [1.],
         'delta_lmbda': [.1],
         'n_inner_steps': [10],
-        'beta1': [.9],
-        'beta2': [.99],
+        'beta1': [.9,.85,.8,.75,.7],
+        'beta2': [.999,.99,.98,.95,.94,.9,.85,.8],
     }
 
     @staticmethod
