@@ -60,14 +60,13 @@ class Dataset(BaseDataset):
         'oracle': ['datacleaning'],
     }
 
-
     def get_data(self):
         rng = np.random.RandomState(self.random_state)
         ratio = self.ratio
-        if not Path("fashion_mnist.pkl").exists():
+        if not Path("mnist.pkl").exists():
             download_mnist()
 
-        with open("fashion_mnist.pkl", "rb") as f:
+        with open("mnist.pkl", "rb") as f:
             mnist = pickle.load(f)
 
         X_train, y_train, X_test, y_test = (
@@ -76,8 +75,6 @@ class Dataset(BaseDataset):
             mnist["test_images"],
             mnist["test_labels"],
         )
-        X_train_val = X_train.copy()
-        y_train_val = y_train.copy()
         n_train = 20000
         n_val = 5000
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
@@ -86,13 +83,11 @@ class Dataset(BaseDataset):
                                                           random_state=rng)
 
         corrupted = rng.rand(n_train) < ratio
-        y_train_uncorrupted = y_train.copy()
         y_train[corrupted] = rng.randint(0, 10, np.sum(corrupted))
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
         X_test = scaler.transform(X_test)
         X_val = scaler.transform(X_val)
-        X_train_val = scaler.fit_transform(X_train_val)
 
         def get_inner_oracle(framework="none", get_full_batch=False):
             X = convert_array_framework(X_train, framework)
@@ -110,27 +105,19 @@ class Dataset(BaseDataset):
 
         def metrics(inner_var, outer_var):
             f_val = get_outer_oracle(framework="none")
-            test_acc = f_val.accuracy(
+            acc = f_val.accuracy(
                 inner_var, outer_var, X_test, y_test
             )
             val_acc = f_val.accuracy(
                 inner_var, outer_var, X_val, y_val
             )
-            train_uncorrupted_acc = f_val.accuracy(
-                inner_var, outer_var, X_train, y_train_uncorrupted
-            )
-            train_corrupted_acc = f_val.accuracy(
+            train_acc = f_val.accuracy(
                 inner_var, outer_var, X_train, y_train
             )
-            train_val_uncorrupted_acc = f_val.accuracy(
-                inner_var, outer_var, X_train_val, y_train_val
-            )            
             return dict(
-                test_accuracy = test_acc,
-                value = val_acc,
-                train_uncorrupted_accuracy =train_uncorrupted_acc,
-                train_accuracy = train_corrupted_acc,
-                train_val_uncorrupted_accuracy = train_val_uncorrupted_acc
+                train_accuracy=train_acc,
+                value=val_acc,
+                test_accuracy=acc
             )
 
         data = dict(
