@@ -41,7 +41,7 @@ class Solver(BaseSolver):
     parameters = {
         'step_size': [.1,.01, .05, .001, .0005],
         'outer_ratio': [1.],
-        'batch_size': [8,16,32,64],
+        'batch_size': [32,64],
         'eval_freq': [128],
         'random_state': [1],
         'framework': ["none"],
@@ -49,7 +49,7 @@ class Solver(BaseSolver):
         'delta_lmbda': [.1],
         'n_inner_steps': [10],
         'beta1': [.9,.85,.8,.75,.7],
-        'beta2': [.999,.99,.98,.95,.94,.9,.85,.8],
+        'beta2': [.999,.99,.98,.95,.93,.9,.85],
     }
 
     @staticmethod
