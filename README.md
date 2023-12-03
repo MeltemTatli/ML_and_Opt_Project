@@ -42,7 +42,7 @@ The plots related to accuracy and convergence can be seen in the html file creat
 
 References 
 ----------
-..  @inproceedings{saba,
+@inproceedings{saba,
       title = {A Framework for Bilevel Optimization That Enables Stochastic and Global Variance Reduction Algorithms},
       booktitle = {Advances in {{Neural Information Processing Systems}} ({{NeurIPS}})},
       author = {Dagr{\'e}ou, Mathieu and Ablin, Pierre and Vaiter, Samuel and Moreau, Thomas},
