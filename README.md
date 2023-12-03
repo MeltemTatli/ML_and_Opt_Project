@@ -60,7 +60,7 @@ Change the the string after -d to change the dataset. Add or substract a solver 
 The plots related to accuracy and convergence can be seen in the html file created under outputs folder.
 
 ## Results
-The project presents results showcasing the performance of F$^2$SA with Adam in terms of convergence speed and stability compared to other bilevel optimization methods.
+The project presents results showcasing the performance of F $^2$ SA with Adam in terms of convergence speed and stability compared to other bilevel optimization methods.
 ## Conclusion
 In conclusion, this project introduces and explores the application of F$^2$SA with Adam in bilevel optimization. The proposed algorithm demonstrates promising results in terms of convergence performance and stability, addressing some of the limitations of existing bilevel optimization methods.
 
