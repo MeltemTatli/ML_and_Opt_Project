@@ -24,7 +24,7 @@ The project utilizes the Fully First-Order Bilevel Stochastic Approximation (F$`
 To enhance the F$`^2`$SA algorithm, the project proposes F$`^2`$SA with Adam, incorporating the Adam optimizer to improve convergence performance. Adam is an adaptive gradient method that approximates second-order information using first-order terms, making it suitable for bilevel optimization.
 
 ## Numerical Experiments
-The project conducts experiments on two common bilevel tasks: data hyper-cleaning and regularization selection. It compares F$^2$SA with Adam against other bilevel methods, including F$`^2`$SA, StocBiO, and SABA, on datasets such as MNIST, FashionMNIST, and Ijcnn1.
+The project conducts experiments on two common bilevel tasks: data hyper-cleaning and regularization selection. It compares F$`^2`$SA with Adam against other bilevel methods, including F$`^2`$SA, StocBiO, and SABA, on datasets such as MNIST, FashionMNIST, and Ijcnn1.
 ## Usage
 To use the provided code, follow the instructions below.
 
