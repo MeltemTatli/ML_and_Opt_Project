@@ -1,5 +1,8 @@
 # CS9692 Machine Learning and Optimization Project: Bilevel Optimization with F$^2$SA and Adam
 
+
+$`\sqrt{3x-1}+(1+x)^2`$
+
 This repository was created for CS9692 Machine Learning and Optimization Project. 
 
 This repository contains the implementation and experiments for a project focused on bilevel optimization using the Fully First-Order Bilevel Stochastic Approximation (F$^2$SA) algorithm with the Adam optimizer.
