@@ -16,7 +16,7 @@ $$
 Bilevel optimization have real-world application such as hyperparameter optimization, meta-learning, representation learning, reinforcement learning, continual learning, adversarial learning, and neural architecture search.
 ## Background
 From the nested optimization perspective, the bilevel objective $`F(x)`$ is an implicit function of $`x`$. The project utilizes the implicit function theorem and advanced Hessian inversion estimation techniques to approximate the gradient of the bilevel objective, allowing for the use of gradient-based optimization algorithms.
-In this project, we boost the fully first-order bilevel method via Adam, aiming at improving the convergence performance. We empirical experiments on 2 commonly seen tasks, namely data hyper-cleaning and Regularization selection. The results demonstrate that F2SA aided with Adam accelerates the convergence to a target accuracy and the performance of it is relatively stable to both theparameters and the settings.
+In this project, we boost the fully first-order bilevel method via Adam, aiming at improving the convergence performance. We empirical experiments on 2 commonly seen tasks, namely data hyper-cleaning and Regularization selection. The results demonstrate that F$`^2`$SA aided with Adam accelerates the convergence to a target accuracy and the performance of it is relatively stable to both theparameters and the settings.
 
 ### F$`^2`$SA Algorithm
 The project utilizes the Fully First-Order Bilevel Stochastic Approximation (F$`^2`$SA) algorithm, which aims to solve bilevel optimization problems efficiently without requiring second-order information. The algorithm is designed to handle both upper-level and lower-level learning rates, presenting a challenge due to potential correlations between these rates.
@@ -24,7 +24,7 @@ The project utilizes the Fully First-Order Bilevel Stochastic Approximation (F$`
 To enhance the F$`^2`$SA algorithm, the project proposes F$`^2`$SA with Adam, incorporating the Adam optimizer to improve convergence performance. Adam is an adaptive gradient method that approximates second-order information using first-order terms, making it suitable for bilevel optimization.
 
 ## Numerical Experiments
-The project conducts experiments on two common bilevel tasks: data hyper-cleaning and regularization selection. It compares F$^2$SA with Adam against other bilevel methods, including F$^2$SA, StocBiO, and SABA, on datasets such as MNIST, FashionMNIST, and Ijcnn1.
+The project conducts experiments on two common bilevel tasks: data hyper-cleaning and regularization selection. It compares F$^2$SA with Adam against other bilevel methods, including F$`^2`$SA, StocBiO, and SABA, on datasets such as MNIST, FashionMNIST, and Ijcnn1.
 ## Usage
 To use the provided code, follow the instructions below.
 
