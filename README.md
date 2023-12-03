@@ -7,11 +7,11 @@ This repository contains the implementation and experiments for a project focuse
 # Introduction
 Bilevel optimization involves minimizing a problem that depends on the optimal solutions of another problem. In this project, we specifically address a bilevel optimization problem represented as follows:
 
-$$
+```math
 \begin{align}\label{opt0}
 \min_{x}~ F(x):= f(x,y^*(x)), ~~\text{ s.t. }~~ y^*(x)=\arg\min_y g(x,y)
 \end{align}
-$$
+```
 
 Bilevel optimization have real-world application such as hyperparameter optimization, meta-learning, representation learning, reinforcement learning, continual learning, adversarial learning, and neural architecture search.
 ## Background
