@@ -4,7 +4,7 @@ This repository was created for CS9692 Machine Learning and Optimization Project
 
 This repository contains the implementation and experiments for a project focused on bilevel optimization using the Fully First-Order Bilevel Stochastic Approximation (F$^2$SA) algorithm with the Adam optimizer.
 
-##Introduction
+#Introduction
 Bilevel optimization involves minimizing a problem that depends on the optimal solutions of another problem. In this project, we specifically address a bilevel optimization problem represented as follows:
 \begin{align}
 \min_{x}~ F(x):= f(x,y^(x)), \text{ s.t. } y^(x)=\arg\min_y g(x,y)
