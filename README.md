@@ -35,3 +35,5 @@ benchopt run benchmark_bilevel-main -s f2sa_adam -s f2sa -s SABA -s StocBiO -d m
 ```
 
 Change the the string after -d to change the dataset. Add or substract a solver by using -s command.
+
+The plots related to accuracy and convergence can be seen in the html file created under outputs folder.
