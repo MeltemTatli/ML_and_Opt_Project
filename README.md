@@ -8,7 +8,7 @@ Our implementation of the F2SA, SABA, and StocBiO algorithm is based on the code
 
 Use git clone to clone the repository.
 ```
-git clone
+git clone https://github.com/MeltemTatli/ML_and_Opt_Project.git
 ```
 
 Install necessary libraries.
