@@ -6,9 +6,11 @@ This repository contains the implementation and experiments for a project focuse
 
 # Introduction
 Bilevel optimization involves minimizing a problem that depends on the optimal solutions of another problem. In this project, we specifically address a bilevel optimization problem represented as follows:
+$$
 \begin{align}
 \min_{x}~ F(x):= f(x,y^(x)), \text{ s.t. } y^(x)=\arg\min_y g(x,y)
 \end{align}
+$$
 Bilevel optimization have real-world application such as hyperparameter optimization, meta-learning, representation learning, reinforcement learning, continual learning, adversarial learning, and neural architecture search.
 ## Background
 From the nested optimization perspective, the bilevel objective $F(x)$ is an implicit function of $x$. The project utilizes the implicit function theorem and advanced Hessian inversion estimation techniques to approximate the gradient of the bilevel objective, allowing for the use of gradient-based optimization algorithms.
