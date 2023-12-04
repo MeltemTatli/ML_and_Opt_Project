@@ -26,7 +26,7 @@ To enhance the F$`^2`$SA algorithm, the project proposes F$`^2`$SA with Adam, in
 ## Numerical Experiments
 The project conducts experiments on two common bilevel tasks: data hyper-cleaning and regularization selection. It compares F$`^2`$SA with Adam against other bilevel methods, including F$`^2`$SA, StocBiO, and SABA, on datasets such as MNIST, FashionMNIST, and Ijcnn1.
 ## Usage
-We utilized the repository bult by ... [2] in this project.
+We utilized the repository bult by Dagr{\'e}ou et al. [2] in this project.
 
 To use the provided code, follow the instructions below.
 
