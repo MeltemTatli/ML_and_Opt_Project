@@ -18,8 +18,8 @@ Bilevel optimization have real-world application such as hyperparameter optimiza
 From the nested optimization perspective, the bilevel objective $`F(x)`$ is an implicit function of $`x`$. The project utilizes the implicit function theorem and advanced Hessian inversion estimation techniques to approximate the gradient of the bilevel objective, allowing for the use of gradient-based optimization algorithms.
 In this project, we boost the fully first-order bilevel method via Adam, aiming at improving the convergence performance. We experimented with 2 main tasks, namely data hyper-cleaning and Regularization selection. The results demonstrate that F$`^2`$SA aided with Adam accelerates the convergence to a target accuracy and the performance of it is relatively stable to both theparameters and the settings.
 
-### F$`^2`$SA Algorithm [1]
-The project utilizes the Fully First-Order Bilevel Stochastic Approximation (F$`^2`$SA) algorithm proposed in ICML 2023, which aims to solve bilevel optimization problems efficiently without requiring second-order information. The algorithm is designed to handle both upper-level and lower-level learning rates, presenting a challenge due to potential correlations between these rates.
+### F$`^2`$SA Algorithm 
+The project utilizes the Fully First-Order Bilevel Stochastic Approximation (F$`^2`$SA) algorithm proposed in ICML 2023 by Kwon et al. (2023a), which aims to solve bilevel optimization problems efficiently without requiring second-order information. The algorithm is designed to handle both upper-level and lower-level learning rates, presenting a challenge due to potential correlations between these rates.
 ### F$`^2`$SA with Adam
 To enhance the F$`^2`$SA algorithm, the project proposes F$`^2`$SA with Adam, incorporating the Adam optimizer to improve convergence performance. Adam is an adaptive gradient method that approximates second-order information using first-order terms, making it suitable for bilevel optimization.
 
@@ -74,14 +74,7 @@ Our implementation of the F$`^2`$SA, SABA, and StocBiO algorithm is based on the
 References 
 ----------
 ```
-[1]
-@inproceedings{kwon2023fully,
-  title={A fully first-order method for stochastic bilevel optimization},
-  author={Kwon, Jeongyeol and Kwon, Dohyun and Wright, Stephen and Nowak, Robert D},
-  booktitle=ICML,
-  year={2023},
-  address=ICML2023_loc
-}
+Jeongyeol Kwon, Dohyun Kwon, Stephen Wright, and Robert D Nowak. A fully first-order method for stochastic bilevel optimization. In Proc. International Conference on Machine Learning, Honolulu, HI, 2023a.
 
-[2]
+Mathieu Dagre ́ou, Pierre Ablin, Samuel Vaiter, and Thomas Moreau. A framework for bilevel optimization that enables stochastic and global variance reduction algorithms. In Proc. Advances in Neural Information Processing Systems, New Orleans, LA, 2022.
 ```
