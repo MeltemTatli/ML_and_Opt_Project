@@ -73,8 +73,7 @@ Our implementation of the F$`^2`$SA, SABA, and StocBiO algorithm is based on the
 
 References 
 ----------
-```
 Jeongyeol Kwon, Dohyun Kwon, Stephen Wright, and Robert D Nowak. A fully first-order method for stochastic bilevel optimization. In Proc. International Conference on Machine Learning, Honolulu, HI, 2023a.
 
 Mathieu Dagre ́ou, Pierre Ablin, Samuel Vaiter, and Thomas Moreau. A framework for bilevel optimization that enables stochastic and global variance reduction algorithms. In Proc. Advances in Neural Information Processing Systems, New Orleans, LA, 2022.
-```
+
