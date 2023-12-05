@@ -1,4 +1,4 @@
-# CS9692 Machine Learning and Optimization Project: Bilevel Optimization with F$`^2`$SA and Adam
+# CS9692 Machine Learning and Optimization Project: ENHANCING BILEVEL OPTIMIZATION WITH SINGLE- LEVEL LEARNING TECHNIQUES
 
 This repository was created for CS9692 Machine Learning and Optimization Project. 
 
