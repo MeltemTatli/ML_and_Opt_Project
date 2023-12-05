@@ -1,4 +1,4 @@
-# CS9692 Machine Learning and Optimization Project: ENHANCING BILEVEL OPTIMIZATION WITH SINGLE- LEVEL LEARNING TECHNIQUES
+# CS9692 Machine Learning and Optimization Project: Enchancing Bilevel Optimization with Single-Level Learning Techniques
 
 This repository was created for CS9692 Machine Learning and Optimization Project. 
 
